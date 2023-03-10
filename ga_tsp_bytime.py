@@ -1,6 +1,7 @@
 import random
 import numpy as np
 from deap import algorithms, base, creator, tools
+import time
 
 # Define the problem
 def load_tsp(file_path):
@@ -28,6 +29,7 @@ def load_tsp(file_path):
         for i in range(dimension):
             for j in range(i, dimension):
                 distances[j, i] = distances[i, j]
+        print(distances)
         return distances
 
 def create_tour(size):
@@ -53,8 +55,15 @@ def mutate_tour(individual):
     individual[i:j] = reversed(individual[i:j])
     return individual,
 
+# Define the function for the stopping criteria
+def stop_criteria(population, toolbox, start_time):
+    # Return True if 10 minutes have elapsed, otherwise False
+    return time.time() - start_time > 600
+
+start_time = time.time()
+
 # Load the ATSP problem from a TSPLIB
-distances = load_tsp('data/br17.atsp')
+distances = load_tsp('data/ftv170.atsp')
 
 # Create the DEAP toolbox
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -68,14 +77,16 @@ toolbox.register("mate", tools.cxOrdered)
 toolbox.register("mutate", mutate_tour)
 toolbox.register("select", tools.selTournament, tournsize=4)
 
-# Run the genetic algorithm to solve the ATSP problem
-population = toolbox.population(n=100)
+# Run the genetic algorithm until the stopping criteria is met
+population = toolbox.population(n=200)
 hof = tools.HallOfFame(1)
 stats = tools.Statistics(lambda ind: ind.fitness.values)
 stats.register("avg", np.mean)
 stats.register("min", np.min)
 
-population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.6, mutpb=0.4, ngen=100, stats=stats, halloffame=hof)
+# Call the eaSimple function with the stopping criteria
+while not stop_criteria(population, toolbox, start_time):
+    population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.6, mutpb=0.4, ngen=1, stats=stats, halloffame=hof)
 
 # Use the 2-opt algorithm to improve the best solution found by the genetic algorithm
 best_tour = hof[0]
