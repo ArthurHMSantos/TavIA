@@ -47,6 +47,16 @@ def evaluate_tour(individual, distances):
     # Return the total sum of distances as the fitness of the individual
     return total_distance,
 
+def infect_population(population, virus_population, infect_prob):
+    infected = []
+    for virus in virus_population:
+        for ind in population:
+            if random.random() < infect_prob:
+                start = random.randint(0, len(ind) - len(virus))
+                end = start + len(virus)
+                ind[start:end] = virus
+                infected.append(ind)
+    return infected
 
 def mutate_tour(individual):
     i, j = sorted(random.sample(range(len(individual)), 2))
@@ -68,14 +78,22 @@ toolbox.register("mate", tools.cxOrdered)
 toolbox.register("mutate", mutate_tour)
 toolbox.register("select", tools.selTournament, tournsize=4)
 
+# Define the virus population
+virus_population = []
+for i in range(10):
+    virus = create_tour(len(distances) // 10)
+    virus_population.append(virus)
+print(f'Virus population: {virus_population}')
+
 # Run the genetic algorithm to solve the ATSP problem
 population = toolbox.population(n=100)
 stats = tools.Statistics(lambda ind: ind.fitness.values)
 stats.register("avg", np.mean)
 stats.register("min", np.min)
 
-population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.6, mutpb=0.4, ngen=1000, stats=stats)
+
+population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.4, ngen=1000, stats=stats, verbose=True)
 
 # Print the best solution found
 best_solution = tools.selBest(population, k=1)[0]
-print(f'Best solution fitness: {best_solution.fitness.values[0]}')
+print('Best solution fitness: {}'.format(best_solution.fitness.values[0]))
