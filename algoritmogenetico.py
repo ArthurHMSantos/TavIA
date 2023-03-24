@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 # Define the problem
 def load_tsp(file_path):
     with open(file_path, 'r') as f:
@@ -28,13 +29,12 @@ def load_tsp(file_path):
             for j in range(i, dimension):
                 distances[j, i] = distances[i, j]
         return distances
-    
-# Load the TSP problem from a TSPLIB
-#distances = load_tsp('data/swiss42.tsp')
+
 
 # Create a random tour
 def create_tour(size):
     return random.sample(range(size), size) # Create a random tour of the correct size
+
 
 # Calculate the fitness of an individual
 def calculate_fitness(individual, distances): 
@@ -45,6 +45,7 @@ def calculate_fitness(individual, distances):
         city_j = individual[j]
         fitness += distances[city_i, city_j]
     return fitness
+
 
 # Create the initial population
 def generate_population(pop_size, distances):
@@ -57,18 +58,11 @@ def generate_population(pop_size, distances):
     fitness_values = [calculate_fitness(individual, distances) for individual in population]
     return population, fitness_values
 
-# Generate the initial population and calculate the fitness of each individual
-#population, fitness_values = generate_population(100, distances)
-
 
 # Calculate the fitness of the entire population
 def calculate_fitness_pop(population, distances):
     fitness_values = [calculate_fitness(individual, distances) for individual in population]
     return fitness_values
-
-#print("Fitness da população inicial: ",calculate_fitness_pop(population, distances))
-#print("Melhor fitness da população inicial: ",min(calculate_fitness_pop(population, distances)))
-#print("Pior fitness da população inicial: ",max(calculate_fitness_pop(population, distances)))
 
 
 # Select the best individuals from the population with rank selection
@@ -78,12 +72,6 @@ def rank_selection(population, fitness_values, num_parents):
     selected_parents = random.choices(ranked_population, weights=selection_probs, k=num_parents) # Select the parents
     return selected_parents
 
-# Select the best individuals from the population with rank selection
-#parents = rank_selection(population, fitness_values, 50)
-#
-#print("Fitness dos pais: ",calculate_fitness_pop(parents, distances))
-#print("Melhor fitness dos pais: ",min(calculate_fitness_pop(parents, distances)))
-#print("Pior fitness dos pais: ",max(calculate_fitness_pop(parents, distances)))
 
 # Perform the crossover operation - in this case we using the order crossover
 def ox_crossover(parent1, parent2):
@@ -139,19 +127,8 @@ def em_mutation(individual):
     # Escolhe duas cidades aleatórias
     city1, city2 = random.sample(range(len(individual)), 2)
     # Troca as duas cidades de lugar na rota
-    print(individual)
     individual[city1], individual[city2] = individual[city2], individual[city1]
-    print(individual)
     return individual
-
-
-
-# Generate the offspring from the parents
-#offspring_population = generate_offspring_population(parents, distances, crossover_rate=0.8, mutation_rate=0.1) # Generate the offspring from the parents population with a crossover rate of 0.8 and a mutation rate of 0.1
-
-#print("Fitness da população de filhos: ",calculate_fitness_pop(offspring_population, distances))
-#print("Melhor fitness da população de filhos: ",min(calculate_fitness_pop(offspring_population, distances)))
-#print("Pior fitness da população de filhos: ",max(calculate_fitness_pop(offspring_population, distances)))
 
 
 # Generate the offspring from the parents population
@@ -174,7 +151,7 @@ def genetic_algorithm(distances, pop_size, num_generations, crossover_rate, muta
             fitness_values[worst_idx] = child_fitness
         
         # Print the best fitness value of this generation
-        print(f"Generation {generation}: Best fitness value = {min(fitness_values)}")
+        print(f"Generation {generation + 1}: Best fitness value = {min(fitness_values)}")
         #print(f"Generation {generation}: Worst fitness value = {max(fitness_values)}")
         #print(f"Generation {generation}: Average fitness value = {np.mean(fitness_values)}")
     
@@ -184,11 +161,13 @@ def genetic_algorithm(distances, pop_size, num_generations, crossover_rate, muta
 
 
 if __name__ == '__main__':
+    # Set the random seed
+    #random.seed(42)
     # Load the TSP problem from a TSPLIB
     distances = load_tsp('data/br17.atsp')
     
-    # Run the genetic algorithm with 1000 generations
-    best_individual, best_fitness = genetic_algorithm(distances, pop_size=100, num_generations=10000, crossover_rate=0.8, mutation_rate=0.01)
+    # Run the genetic algorithm with 1000 generations and a population size of 100 individuals  
+    best_individual, best_fitness = genetic_algorithm(distances, pop_size=100, num_generations=1000, crossover_rate=0.8, mutation_rate=0.01)
     
     # Print the best individual and its fitness value
     print(f"Best individual: {best_individual}")
