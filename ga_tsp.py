@@ -2,6 +2,8 @@ import random
 import numpy as np
 from deap import algorithms, base, creator, tools
 
+random.seed(22)
+
 # Define the problem
 def load_tsp(file_path):
     with open(file_path, 'r') as f:
@@ -54,7 +56,7 @@ def mutate_tour(individual):
     return individual,
 
 # Load the ATSP problem from a TSPLIB
-distances = load_tsp('data/brg323.atsp')
+distances = load_tsp('data/rbg403.atsp')
 
 # Create the DEAP toolbox
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -74,7 +76,7 @@ stats = tools.Statistics(lambda ind: ind.fitness.values)
 stats.register("avg", np.mean)
 stats.register("min", np.min)
 
-population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.6, mutpb=0.4, ngen=1000, stats=stats)
+population, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.6, mutpb=0.4, ngen=50, stats=stats)
 
 # Print the best solution found
 best_solution = tools.selBest(population, k=1)[0]
