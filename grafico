@@ -1,0 +1,22 @@
+import matplotlib.pyplot as plt
+
+x = [1,500,1000,1500,2000,2500,3000,3500,4000,4500,5000]
+y = [7315, 5245, 4750, 4703, 4624, 4786, 4976, 5081, 4570, 4880, 4718] # sem elitismo
+y1 =[7315, 4085, 3547,3238, 3031, 2894,2773, 2675, 2599, 2546, 2471] # com elitismo
+
+
+plt.plot(x, y, 'b.-')
+y2 = [2465, 2465, 2465, 2465,  2465,  2465,  2465,  2465, 2465, 2465, 2465] # otimo
+plt.plot(x, y1, 'r.-')
+
+
+
+plt.plot(x, y, "-b", label="Sem elitismo")
+plt.plot(x, y1, "-r", label="Com elitismo")
+plt.plot(x, y2, "-g", label="Solução otima")
+plt.legend(loc="upper left")
+plt.xlabel("Número de gerações")
+plt.ylabel("Menor Distância")
+plt.title('Progressão Geracional da fitness \n(brg403.atsp)')
+plt.legend()
+plt.show()

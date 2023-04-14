@@ -6,19 +6,12 @@ import numpy as np
 def load_tsp(file_path):
     with open(file_path, 'r') as f:
         lines = f.readlines()
-        node_coord_section = False
         dimension = None
-        node_cords = []
         edge_weight_section = False
         distances_list = []
         for line in lines:
             if line.startswith('DIMENSION'):
                 dimension = int(line.split()[-1])
-            elif line.startswith('NODE_COORD_SECTION'):
-                node_coord_section = True
-            elif node_coord_section:
-                _, x, y = line.split()
-                node_cords.append((float(x), float(y)))
             elif line.startswith('EDGE_WEIGHT_SECTION'):
                 edge_weight_section = True
                 continue
@@ -28,7 +21,6 @@ def load_tsp(file_path):
         for i in range(dimension):
             for j in range(i, dimension):
                 distances_list[j, i] = distances_list[i, j]
-
         return distances_list
 
 
@@ -70,7 +62,9 @@ def calculate_fitness_pop(population, distances_list):
 def rank_selection(population, fitness_values, num_parents):
     ranked_population = [individual for _, individual in sorted(zip(fitness_values, population))]  # Sort the population based on the fitness values
     rank = np.arange(len(ranked_population), 0, -1)
+    #print(rank)
     selection_probs = rank / sum(rank)  # Calculate the selection probabilities
+    #print(selection_probs)
     selected_parents = random.choices(ranked_population, weights=selection_probs, k=num_parents)  # Select the parents
     return selected_parents
 
@@ -113,15 +107,24 @@ def generate_offspring(parents, distances_list, crossover_rate, mutation_rate):
 
     return child, child_fitness
 
+# Generate the offspring from the parents population with elitism
+def generate_offspring_population_elitism(parents, distances_list, crossover_rate, mutation_rate, elitism_rate):
+    offspring = []
+    num_elites = int(len(parents) * elitism_rate)
 
-# Generate the offspring from the parents population
-def generate_offspring_population(parents, distances_list, crossover_rate, mutation_rate):
-    children = []
-    while len(children) < len(parents):
+    # Preserve the best individuals from the parents
+    parents_fitness = calculate_fitness_pop(parents, distances_list)
+    elites = [ind for _, ind in sorted(zip(parents_fitness, parents))[:num_elites]]
+    offspring.extend(elites)
+
+    # Generate the remaining offspring
+    while len(offspring) < len(parents):
         parent1, parent2 = random.sample(parents, 2)
         child, child_fitness = generate_offspring((parent1, parent2), distances_list, crossover_rate, mutation_rate)
-        children.append(child)
-    return children
+        offspring.append(child)
+
+    return offspring
+
 
 
 # Perform the mutation operation - in this case we're using the swap mutation
@@ -133,8 +136,8 @@ def em_mutation(individual):
     return individual
 
 
-# Genetic algorithm
-def genetic_algorithm(distances_list, pop_size, num_generations, crossover_rate, mutation_rate):
+# Genetic algorithm with elitism
+def genetic_algorithm(distances_list, pop_size, num_generations, crossover_rate, mutation_rate, elitism_rate):
     # Create the initial population
     population, fitness_values = generate_population(pop_size, distances_list)
 
@@ -143,8 +146,8 @@ def genetic_algorithm(distances_list, pop_size, num_generations, crossover_rate,
         # Select the parents using rank selection
         parents = rank_selection(population, fitness_values, 100)
 
-        # Generate the offspring from the parents
-        children = generate_offspring_population(parents, distances_list, crossover_rate, mutation_rate)
+        # Generate the offspring from the parents with elitism
+        children = generate_offspring_population_elitism(parents, distances_list, crossover_rate, mutation_rate, elitism_rate)
 
         # Replace the parents with the children
         population = children
@@ -155,7 +158,7 @@ def genetic_algorithm(distances_list, pop_size, num_generations, crossover_rate,
         best_fitness_crt_gen = fitness_values[best_fitness_idx]
         best_individual_crt_gen = population[best_fitness_idx]
         if i % 100 == 0:
-            print(f"Gen {i}: Best fit = {best_fitness_crt_gen} ")
+            print(f"Gen {i}: Best fit = {best_fitness_crt_gen}")
 
     # Return the best individual in the final generation
     best_fitness_idx = np.argmin(fitness_values)
@@ -163,15 +166,14 @@ def genetic_algorithm(distances_list, pop_size, num_generations, crossover_rate,
     best_individual_crt_gen = population[best_fitness_idx]
     return best_individual_crt_gen, best_fitness_crt_gen
 
-
 if __name__ == '__main__':
     # Set the random seed
     random.seed(999)
     # Load the TSP problem from a TSP LIB
-    distances = load_tsp('data/ftv170.atsp')
+    distances = load_tsp('data/rbg403.atsp')
 
-    # Run the genetic algorithm with 1000 generations and a population size of 100 individuals
-    best_individual, best_fitness = genetic_algorithm(distances, pop_size=100, num_generations=5000, crossover_rate=0.8, mutation_rate=0.2)
+    # Run the genetic algorithm with 1000 generations, a population size of 100 individuals, and elitism rate of 0.1
+    best_individual, best_fitness = genetic_algorithm(distances, pop_size=100, num_generations=5000, crossover_rate=0.8, mutation_rate=0.2, elitism_rate=0.05)
 
     # Print the best individual and its fitness value
     print(f"Best individual: {best_individual}")
